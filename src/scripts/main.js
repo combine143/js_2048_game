@@ -10,11 +10,13 @@ const game = new Game([
 
 const startButton = document.querySelector('.start');
 const startGame = document.querySelector('.message-start');
+const loseMess = document.querySelector('.message-lose');
 
 startButton.addEventListener('click', () => {
   game.restart();
 
   startGame.classList.add('hidden');
+  loseMess.classList.add('hidden');
   startButton.className = 'button restart';
   startButton.textContent = 'Restart';
 });
@@ -26,20 +28,22 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
-  if (e.key === 'ArrowUp') {
-    game.moveUp();
-  }
+  switch (e.key) {
+    case 'ArrowUp':
+      game.moveUp();
+      break;
 
-  if (e.key === 'ArrowDown') {
-    game.moveDown();
-  }
+    case 'ArrowDown':
+      game.moveDown();
+      break;
 
-  if (e.key === 'ArrowLeft') {
-    game.moveLeft();
-  }
+    case 'ArrowLeft':
+      game.moveLeft();
+      break;
 
-  if (e.key === 'ArrowRight') {
-    game.moveRight();
+    case 'ArrowRight':
+      game.moveRight();
+      break;
   }
 
   if (game.getStatus() === 'win') {
@@ -53,7 +57,6 @@ document.addEventListener('keydown', (e) => {
   }
 
   if (game.getStatus() === 'lose') {
-    const loseMess = document.querySelector('.message-lose');
     const startMess = document.querySelector('.message-start');
 
     loseMess.classList.remove('hidden');
