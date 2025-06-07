@@ -1,362 +1,64 @@
 'use strict';
 
-// Uncomment the next lines to use your game instance in the browser
-// const Game = require('../modules/Game.class');
-// const game = new Game();
+const Game = require('../modules/Game.class');
+const game = new Game([
+  [0, 0, 0, 0],
+  [0, 0, 0, 0],
+  [0, 0, 0, 0],
+  [0, 0, 0, 0],
+]);
 
 const startButton = document.querySelector('.start');
+const startGame = document.querySelector('.message-start');
 
-function restart() {
-  const cells = document.querySelectorAll('.field-cell');
+startButton.addEventListener('click', () => {
+  game.restart();
 
-  cells.forEach((cell) => {
-    cell.className = 'field-cell';
-    cell.textContent = '';
-  });
-
+  startGame.classList.add('hidden');
   startButton.className = 'button restart';
   startButton.textContent = 'Restart';
-}
-
-function start() {
-  startButton.addEventListener('click', () => {
-    restart();
-
-    const cells = document.querySelectorAll('.field-cell');
-
-    const first = Math.floor(Math.random() * cells.length);
-    let second;
-
-    do {
-      second = Math.floor(Math.random() * cells.length);
-    } while (second === first);
-
-    [first, second].forEach((index) => {
-      const value = Math.random() < 0.9 ? 2 : 4;
-
-      if (value === 2) {
-        cells[index].classList.add(`field-cell--${value}`);
-        cells[index].textContent = 2;
-      } else {
-        cells[index].classList.add(`field-cell--${value}`);
-        cells[index].textContent = 4;
-      }
-    });
-  });
-}
-
-start();
-
-function makeRandom() {
-  const cells = document.querySelectorAll('.field-cell');
-
-  const emptyCells = [];
-
-  cells.forEach((cell, index) => {
-    if (cell.textContent === '') {
-      emptyCells.push(index);
-    }
-  });
-
-  const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-
-  const value = Math.random() < 0.9 ? 2 : 4;
-
-  cells[randomIndex].className = 'field-cell';
-  cells[randomIndex].classList.add(`field-cell--${value}`);
-  cells[randomIndex].textContent = value;
-}
-
-function getScore(value) {
-  const score = document.querySelector('.game-score');
-  const current = parseInt(score.textContent);
-
-  score.textContent = current + value;
-}
-
-function moveUp() {
-  const size = 4;
-  const cells = document.querySelectorAll('.field-cell');
-  let sumScore = 0;
-  let moved = false;
-
-  for (let col = 0; col < size; col++) {
-    let values = [];
-
-    for (let row = 0; row < size; row++) {
-      const index = row * size + col;
-      const val = parseInt(cells[index].textContent);
-
-      if (!isNaN(val)) {
-        values.push(val);
-      }
-    }
-
-    for (let i = 0; i < values.length - 1; i++) {
-      if (values[i] === values[i + 1]) {
-        values[i] = values[i] * 2;
-        sumScore += values[i];
-        values[i + 1] = '';
-        i++;
-      }
-    }
-
-    values = values.filter((val) => val !== '');
-
-    while (values.length < size) {
-      values.push('');
-    }
-
-    for (let row = 0; row < size; row++) {
-      const index = row * size + col;
-      const val = values[row];
-
-      if (cells[index].textContent !== String(val)) {
-        moved = true;
-      }
-
-      cells[index].textContent = val;
-      cells[index].className = 'field-cell';
-
-      if (val) {
-        cells[index].classList.add(`field-cell--${val}`);
-      }
-    }
-  }
-
-  getScore(sumScore);
-
-  if (moved) {
-    makeRandom();
-
-    const emptyCells = Array.from(cells).filter(
-      (cell) => cell.textContent === '',
-    );
-
-    if (emptyCells.length === 0) {
-      loseGame();
-    }
-  }
-}
+});
 
 document.addEventListener('keydown', (e) => {
+  const score = document.querySelector('.game-score');
+
+  if (game.getStatus() !== 'playing') {
+    return;
+  }
+
   if (e.key === 'ArrowUp') {
-    moveUp();
+    game.moveUp();
   }
 
   if (e.key === 'ArrowDown') {
-    moveDown();
+    game.moveDown();
   }
 
   if (e.key === 'ArrowLeft') {
-    moveLeft();
+    game.moveLeft();
   }
 
   if (e.key === 'ArrowRight') {
-    moveRight();
+    game.moveRight();
   }
+
+  if (game.getStatus() === 'win') {
+    const winMess = document.querySelector('.message-win');
+
+    winMess.classList.remove('hidden');
+
+    const startMess = document.querySelector('.message-start');
+
+    startMess.classList.add('hidden');
+  }
+
+  if (game.getStatus() === 'lose') {
+    const loseMess = document.querySelector('.message-lose');
+    const startMess = document.querySelector('.message-start');
+
+    loseMess.classList.remove('hidden');
+    startMess.classList.add('hidden');
+  }
+
+  score.textContent = game.score;
 });
-
-function loseGame() {
-  const loseMess = document.querySelector('.message-lose');
-  const startMess = document.querySelector('.message-start');
-
-  loseMess.classList = 'message message-lose';
-  startMess.classList.add('hidden');
-}
-
-function moveDown() {
-  const size = 4;
-  const cells = document.querySelectorAll('.field-cell');
-  let sumScore = 0;
-  let moved = false;
-
-  for (let col = 0; col < size; col++) {
-    let values = [];
-
-    for (let row = size - 1; row >= 0; row--) {
-      const index = row * size + col;
-      const val = parseInt(cells[index].textContent);
-
-      if (!isNaN(val)) {
-        values.push(val);
-      }
-    }
-
-    for (let i = 0; i < values.length - 1; i++) {
-      if (values[i] === values[i + 1]) {
-        values[i] = values[i] * 2;
-        sumScore += values[i];
-        values[i + 1] = '';
-        i++;
-      }
-    }
-
-    values = values.filter((val) => val !== '');
-
-    while (values.length < size) {
-      values.push('');
-    }
-
-    for (let row = size - 1, i = 0; row >= 0; row--, i++) {
-      const index = row * size + col;
-      const val = values[i];
-
-      if (cells[index].textContent !== String(val)) {
-        moved = true;
-      }
-
-      cells[index].textContent = val;
-      cells[index].className = 'field-cell';
-
-      if (val) {
-        cells[index].classList.add(`field-cell--${val}`);
-      }
-    }
-  }
-
-  getScore(sumScore);
-
-  if (moved) {
-    makeRandom();
-
-    const emptyCells = Array.from(cells).filter(
-      (cell) => cell.textContent === '',
-    );
-
-    if (emptyCells.length === 0) {
-      loseGame();
-    }
-  }
-}
-
-function moveLeft() {
-  const size = 4;
-  const cells = document.querySelectorAll('.field-cell');
-  let sumScore = 0;
-  let moved = false;
-
-  for (let row = 0; row < size; row++) {
-    let values = [];
-
-    for (let col = 0; col < size; col++) {
-      const index = row * size + col;
-      const val = parseInt(cells[index].textContent);
-
-      if (!isNaN(val)) {
-        values.push(val);
-      }
-    }
-
-    for (let i = 0; i < values.length - 1; i++) {
-      if (values[i] === values[i + 1]) {
-        values[i] = values[i] * 2;
-        sumScore += values[i];
-        values.splice(i + 1, 1);
-        values[i + 1] = '';
-        i++;
-      }
-    }
-
-    values = values.filter((val) => val !== '');
-
-    while (values.length < size) {
-      values.push('');
-    }
-
-    for (let col = 0; col < size; col++) {
-      const index = row * size + col;
-      const val = values[col];
-
-      if (cells[index].textContent !== String(val)) {
-        moved = true;
-      }
-
-      cells[index].textContent = val;
-      cells[index].className = 'field-cell';
-
-      if (val) {
-        cells[index].classList.add(`field-cell--${val}`);
-      }
-    }
-  }
-
-  getScore(sumScore);
-
-  if (moved) {
-    makeRandom();
-
-    const emptyCells = Array.from(cells).filter(
-      (cell) => cell.textContent === '',
-    );
-
-    if (emptyCells.length === 0) {
-      loseGame();
-    }
-  }
-}
-
-function moveRight() {
-  const size = 4;
-  const cells = document.querySelectorAll('.field-cell');
-  let sumScore = 0;
-  let moved = false;
-
-  for (let row = 0; row < size; row++) {
-    let values = [];
-
-    for (let col = size - 1; col >= 0; col--) {
-      const index = row * size + col;
-      const val = parseInt(cells[index].textContent);
-
-      if (!isNaN(val)) {
-        values.push(val);
-      }
-    }
-
-    for (let i = 0; i < values.length - 1; i++) {
-      if (values[i] === values[i + 1]) {
-        values[i] = values[i] * 2;
-        sumScore += values[i];
-        values.splice(i + 1, 1);
-        i++;
-      }
-    }
-
-    values = values.filter((val) => val !== '');
-
-    while (values.length < size) {
-      values.push('');
-    }
-
-    for (let col = size - 1, i = 0; col >= 0; col--, i++) {
-      const index = row * size + col;
-      const val = values[i];
-
-      if (cells[index].textContent !== String(val)) {
-        moved = true;
-      }
-
-      cells[index].textContent = val;
-      cells[index].className = 'field-cell';
-
-      if (val) {
-        cells[index].classList.add(`field-cell--${val}`);
-      }
-    }
-  }
-
-  getScore(sumScore);
-
-  if (moved) {
-    makeRandom();
-
-    const emptyCells = Array.from(cells).filter(
-      (cell) => cell.textContent === '',
-    );
-
-    if (emptyCells.length === 0) {
-      loseGame();
-    }
-  }
-}
